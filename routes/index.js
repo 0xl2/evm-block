@@ -1,8 +1,11 @@
 const express = require('express');
 const Web3 = require('web3');
+const request = require('request');
 const router = express.Router();
 
-const web3 = new Web3(new Web3.providers.HttpProvider("https://ropsten.infura.io/v3/570f1ebd62024227a90b259a6e718de0"));
+const config = require("../config/config.json");
+
+const web3 = new Web3(new Web3.providers.HttpProvider(config.network));
 
 /* GET home page. */
 router.get('/', (req, res) => {
