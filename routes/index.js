@@ -6,7 +6,6 @@ const empty = require('is-empty');
 const Validator = require('validatorjs');
 
 const config = require("../config/config.json");
-
 const router = express.Router();
 
 /* GET home page. */
