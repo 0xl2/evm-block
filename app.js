@@ -5,6 +5,7 @@ const logger = require('morgan');
 
 const indexRouter = require('./routes/index');
 const polkaRouter = require('./routes/polka');
+const solRouter = require('./routes/sol');
 
 const app = express();
 app.use(logger('dev'));
@@ -14,6 +15,7 @@ app.use(cookieParser());
 
 app.use('/', indexRouter);
 app.use('/polka', polkaRouter);
+app.use('/sol', solRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

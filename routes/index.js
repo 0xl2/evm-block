@@ -30,7 +30,8 @@ router.post('/', (req, res) => {
   } else {
     try {
       request.post({
-        url: 'http://localhost:3000/ethers/transfer_request',
+        // url: 'http://localhost:3000/ethers/transfer_request',
+        url: 'http://54.251.180.59/ethers/transfer_request',
         json: postData
       }, (error, req, resp) => {
         if(error) {
@@ -44,7 +45,8 @@ router.post('/', (req, res) => {
             const serializedTx = `0x${tx.serialize().toString('hex')}`;
 
             request.post({
-              url: 'http://localhost:3000/ethers/transfer_broadcast',
+              // url: 'http://localhost:3000/ethers/transfer_broadcast',
+              url: 'http://54.251.180.59/ethers/transfer_broadcast',
               json: {
                 rawTransaction: serializedTx,
                 network: postData.network
