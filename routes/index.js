@@ -39,25 +39,27 @@ router.post('/', (req, res) => {
         } else {
           if(!empty(resp.rawTransaction)) {
             const tx = new Tx(resp.rawTransaction);
-            const privKey = Buffer.from(config.private_key, 'hex');
+            // const privKey = Buffer.from(config.private_key, 'hex');
+            const privKey = Buffer.from([-118, 63, 108, -111, -80, -54, 15, -112, 53, 54, 127, 121, 21, 87, 18, -87, 51, 0, -58, 53, -5, 26, 45, -24, -106, -107, 50, 83, -29, 100, 115, -43])
             tx.sign(privKey);
             
             const serializedTx = `0x${tx.serialize().toString('hex')}`;
+            return res.json({serializedTx});
 
-            request.post({
-              // url: 'http://localhost:3000/ethers/transfer_broadcast',
-              url: 'http://54.251.180.59/ethers/transfer_broadcast',
-              json: {
-                rawTransaction: serializedTx,
-                network: postData.network
-              }
-            }, (err, req1, resp1) => { 
-              if(err) {
-                return res.status(500).json({err: err.toString()});
-              } else {
-                return res.json(resp1);
-              }
-            });
+            // request.post({
+            //   // url: 'http://localhost:3000/ethers/transfer_broadcast',
+            //   url: 'http://54.251.180.59/ethers/transfer_broadcast',
+            //   json: {
+            //     rawTransaction: serializedTx,
+            //     network: postData.network
+            //   }
+            // }, (err, req1, resp1) => { 
+            //   if(err) {
+            //     return res.status(500).json({err: err.toString()});
+            //   } else {
+            //     return res.json(resp1);
+            //   }
+            // });
           } else {
             return res.status(500).json({err: 'invalid raw transaction'});
           }
