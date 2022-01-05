@@ -38,8 +38,34 @@ router.post('/', (req, res) => {
         if(error) {
           return res.status(500).json({err: error.toString()});
         } else {
-          if(!empty(resp.manualTransaction)) {
+          if(!empty(resp.unsigned)) {
+            await cryptoWaitReady();
+
+            const {unsigned, metadataRpc, specVersion} = resp;
+            const registry = getRegistry({
+              chainName: 'Polkadot',
+              specName: 'polkadot',
+              specVersion,
+              metadataRpc
+            });
+
+            const signingPayload = construct.signingPayload(unsigned, { registry });
+
+            // const keyring = new Keyring({ type: 'ed25519' });
+            const keyring = new Keyring({ ss58Format: 42, type: 'sr25519' });
+            const keypair = keyring.addFromUri(config.polka_key);
+
+            registry.setMetadata(createMetadata(registry, metadataRpc));
+            const {signature} = registry
+              .createType('ExtrinsicPayload', signingPayload, {
+                version: 4
+              })
+              .sign(keypair);
             
+            const tx = construct.signedTx(unsigned, signature, {
+              metadataRpc,
+              registry
+            });
 
             request.post({
               url: 'http://localhost:3000/polkadot/transfer_broadcast',
