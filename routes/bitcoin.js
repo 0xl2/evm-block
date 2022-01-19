@@ -18,7 +18,7 @@ router.post('/', (req, res) => {
     if(validator.fails()) {
         return res.status(401).json({
             type: 'ValidationError',
-            errors: validation.errors.all(),
+            errors: validator.errors.all(),
         });
     } else {
         try {

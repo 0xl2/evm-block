@@ -27,7 +27,7 @@ router.post('/', (req, res) => {
   if(validator.fails()) {
     return res.status(401).json({
       type: 'ValidationError',
-      errors: validation.errors.all(),
+      errors: validator.errors.all(),
     });
   } else {
     try {
@@ -41,10 +41,12 @@ router.post('/', (req, res) => {
           if(!empty(resp.unsigned)) {
             await cryptoWaitReady();
 
-            const {unsigned, metadataRpc, specVersion} = resp;
+            const {unsigned, metadataRpc, specVersion, specName} = resp;
             const registry = getRegistry({
-              chainName: 'Polkadot',
-              specName: 'polkadot',
+              // chainName: 'Polkadot',
+              // specName: 'polkadot',
+              chainName: 'Westend',
+              specName,
               specVersion,
               metadataRpc
             });
@@ -53,7 +55,7 @@ router.post('/', (req, res) => {
 
             // const keyring = new Keyring({ type: 'ed25519' });
             const keyring = new Keyring({ ss58Format: 42, type: 'sr25519' });
-            const keypair = keyring.addFromUri(config.polka_key);
+            const keypair = keyring.addFromUri(config.polka_key1);
 
             registry.setMetadata(createMetadata(registry, metadataRpc));
             const {signature} = registry
@@ -66,6 +68,8 @@ router.post('/', (req, res) => {
               metadataRpc,
               registry
             });
+
+            // return res.json({tx});
 
             request.post({
               url: 'http://localhost:3000/polkadot/transfer_broadcast',

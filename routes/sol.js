@@ -9,6 +9,12 @@ const Validator = require('validatorjs');
 const config = require("../config/config.json");
 const router = express.Router();
 
+router.get('/', (req, res) => {
+    const uint8Arr = new Uint8Array(Base58.decode(config.solana_key1));
+    console.log(uint8Arr);
+    return res.json({uint8Arr});
+});
+
 router.post('/', (req, res) => {
     const postData = req.body;
     const validator = new Validator(postData, {
@@ -21,7 +27,7 @@ router.post('/', (req, res) => {
     if(validator.fails()) {
         return res.status(401).json({
             type: 'ValidationError',
-            errors: validation.errors.all(),
+            errors: validator.errors.all(),
         });
     } else {
         try {

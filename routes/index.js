@@ -25,12 +25,12 @@ router.post('/', (req, res) => {
   if(validator.fails()) {
     return res.status(401).json({
       type: 'ValidationError',
-      errors: validation.errors.all(),
+      errors: validator.errors.all(),
     });
   } else {
     try {
       request.post({
-        url: 'http://localhost:3000/ethers/transfer_request_erc',
+        url: 'http://localhost:3000/ethers/transfer_request',
         // url: 'http://54.251.180.59/ethers/transfer_request',
         json: postData
       }, (error, req, resp) => {
@@ -38,6 +38,7 @@ router.post('/', (req, res) => {
           return res.status(500).json({err: error.toString()});
         } else {
           if(!empty(resp.rawTransaction)) {
+            console.log(resp.rawTransaction);
             const tx = new Tx(resp.rawTransaction);
             const privKey = Buffer.from(config.private_key, 'hex');
             tx.sign(privKey);
