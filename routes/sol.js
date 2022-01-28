@@ -3,6 +3,7 @@ const empty = require('is-empty');
 const request = require('request');
 const Base58 = require('base-58');
 const nacl = require('tweetnacl');
+const {Token} = require("@solana/spl-token");
 const solanaWeb3 = require('@solana/web3.js');
 const Validator = require('validatorjs');
 
@@ -57,6 +58,84 @@ router.post('/', (req, res) => {
                         manualTransaction.addSignature(fromWallet.publicKey, new Buffer.from(signature));
                         
                         console.log(`The signatures were verifed: ${manualTransaction.verifySignatures()}`)
+
+                        request.post({
+                            url: 'http://localhost:3000/solana/transfer_broadcast',
+                            json: {
+                                rawTransaction: manualTransaction.serialize(),
+                                network: postData.network
+                            }
+                        }, (err, req1, resp1) => { 
+                            if(err) {
+                                console.log(err);
+                                return res.status(500).json({err: err.toString()});
+                            } else {
+                                return res.json(resp1);
+                            }
+                        });
+                    } else {
+                        return res.status(500).json({error: "Invalid unsigned transaction"});
+                    }
+                }
+            }, (err) => {
+                return res.status(500).json({ error: error.toString() });
+            });
+        } catch (error) {
+            return res.status(500).json({ error: error.message });
+        }
+    }
+});
+
+router.post('/spl', (req, res) => {
+    const postData = req.body;
+    const validator = new Validator(postData, {
+        from: 'required|string',
+        receiver: 'required|string',
+        amount: 'required',
+        programId: 'required|string',
+        network: 'required|string'
+    });
+
+    if(validator.fails()) {
+        return res.status(401).json({
+            type: 'ValidationError',
+            errors: validator.errors.all(),
+        });
+    } else {
+        try {
+            request.post({
+                url: 'http://localhost:3000/solana/transfer_request_spl',
+                json: postData
+            }, async (error, req, resp) => {
+                if(error) {
+                    console.log(error);
+                    return res.status(500).json({err: error.toString()});
+                } else {
+                    if(!empty(resp.blockhash) && !empty(resp.decimals)) {
+                        const uint8Arr = new Uint8Array(Base58.decode(config.solana_key));
+                        const fromWallet = solanaWeb3.Keypair.fromSecretKey(uint8Arr);
+
+                        const manualTransaction = new solanaWeb3.Transaction({
+                            recentBlockhash: resp.blockhash,
+                            feePayer: fromWallet.publicKey
+                        });
+                        manualTransaction.add(
+                            Token.createTransferInstruction(
+                                new solanaWeb3.PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+                                new solanaWeb3.PublicKey(postData.from),
+                                new solanaWeb3.PublicKey(postData.receiver),
+                                fromWallet.publicKey,
+                                [],
+                                postData.amount * Math.pow(10, resp.decimals)
+                            )
+                        );
+                        
+                        const signature = nacl.sign.detached(new Uint8Array(manualTransaction.serializeMessage()), fromWallet.secretKey);
+                        manualTransaction.addSignature(fromWallet.publicKey, new Buffer.from(signature));
+                        
+                        console.log(`The signatures were verifed: ${manualTransaction.verifySignatures()}`)
+
+                        solanaWeb3.
 
                         request.post({
                             url: 'http://localhost:3000/solana/transfer_broadcast',
